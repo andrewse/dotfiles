@@ -8,6 +8,3 @@ Checkout to the location on your machine where you keep your repositories. In my
 The install script uses [GNU Stow](https://www.gnu.org/software/stow/) to manage the files. It works by creating a symlink form the file in this repository to the target directory. In our case, stow is called on each separate top level folder in this repository.
 
 For a great overview of this setup, have a look at [this post](http://brandon.invergo.net/news/2012-05-26-using-gnu-stow-to-manage-your-dotfiles.html).
-
-https://github.com/geerlingguy/dotfiles/blob/master/.inputrc
-
