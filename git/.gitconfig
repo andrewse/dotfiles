@@ -1,0 +1,31 @@
+[user]
+	name = Andrew Semple
+	email = asemple@atlassian.com
+[core]
+	excludesfile = ~/.gitignore_global
+[push]
+	default = simple
+[alias]
+	pu="![[ $(git config \"branch.$(git rev-parse --abbrev-ref HEAD).merge\") = '' ]] && git push -u origin $(git rev-parse --abbrev-ref HEAD) || git push"
+	co="checkout"
+	create="checkout -b"
+	delete="branch -D"
+	purge=""
+	which="!git branch | grep -i"
+	workon="worktree add"
+	wcb=""
+	wca=""
+	st="status"
+	br="branch"
+	dump="cat-file -p"
+	type="cat-file -t"
+	hist="log --pretty=format:\"%h %ad | %s%d [%an]\" --graph --date=short"
+	# https://stackoverflow.com/questions/8475448/find-merge-commit-which-include-a-specific-commit
+	find-merge = "!sh -c 'commit=$0 && branch=${1:-HEAD} && (git rev-list $commit..$branch --ancestry-path | cat -n; git rev-list $commit..$branch --first-parent | cat -n) | sort -k2 -s | uniq -f1 -d | sort -n | tail -1 | cut -f2'"
+	show-merge = "!sh -c 'merge=$(git find-merge $0 $1) && [ -n \"$merge\" ] && git show $merge'"
+[credential]
+	helper = osxkeychain
+[init]
+	templatedir = ~/.gittemplate
+[includeIf "gitdir:**/github/*"]
+  path = .gitconfig_github
