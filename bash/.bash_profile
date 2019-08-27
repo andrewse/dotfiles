@@ -58,3 +58,48 @@ complete -o "nospace" -W "Contacts Calendar Dock Finder Mail Safari iTunes Syste
 # Add to the keychain identites that I want to be loaded on startup
 # https://stackoverflow.com/questions/3466626/add-private-key-permanently-with-ssh-add-on-ubuntu
 # ssh-add -K ~/.ssh/your_private_key
+
+
+##### ALIASES #######
+alias profile='mvim $HOME/.profile'
+alias dockerstart='/Applications/Docker/Docker\ Quickstart\ Terminal.app/Contents/Resources/Scripts/start.sh'
+alias jmakefu='./jmake cleanall && ./jmake install && ./jmake unit-tests'
+alias jmakeci='./jmake cleanall && ./jmake install'
+alias jmakecivd='./jmake clean && ./jmake install && ./jmake unit-tests --verify-deps'
+alias jmakecd='./jmake cleanall && ./jmake debug'
+alias jmaked='./jmake debug'
+alias cc='git grep ">>>>>>>"'
+alias ll='ls -lt'
+
+
+alias passgp='pass git push'
+alias portsinuse='lsof -iTCP -sTCP:LISTEN -n -P'
+alias gnucash='wine /Users/asemple/.wine/drive_c/GnuCashPortable/GnuCashPortable.exe'
+alias pwsafe='wine /Users/asemple/.wine/drive_c/Program\ Files/Password\ Safe/pwsafe.exe'
+# alias mvim='mvim --remote-tab-silent'
+alias colourdiff='colordiff'
+
+alias mount_nas_tv='mkdir /Volumes/NasTv && mount_afp -i afp://andrew@nas-ds413j.local/Tv /Volumes/NasTv/'
+alias mvim='mvim --remote-tab-silent'
+alias brewdo='brew update && brew upgrade && brew cask upgrade && brew cleanup'
+#alias ideamerge='/Applications/IntelliJ\ IDEA.app/Contents/MacOS/idea diff'
+
+alias sssh='ondemand-commands-ssh '
+
+#http://tldp.org/LDP/Bash-Beginners-Guide/html/sect_07_01.html
+#Alias commands for git
+alias grh='git reset --hard'
+alias whcs='git diff-tree --no-commit-id --name-only -r'
+alias gs='git status'
+alias gnp='git --no-pager'
+alias gitnp='git --no-pager'
+#Git checkout
+alias goco='git checkout'
+alias gcom='git commit'
+
+alias glol='git log --pretty=format:"%C(yellow)%<(15)%h%Creset%C(magenta)%<(30)%p%Creset%x09%<(30)%an%x09%Cred%ar%x09%Creset%s"'
+alias glolnp='git --no-pager log --pretty=format:"%C(yellow)%<(10)%h%Creset%C(magenta)%<(20)%p%Creset%x09%<(20)%an%x09%Cred%ar%x09%Creset%s"'
+alias gcd='git cherry -v'
+alias gitcleanbranch='git branch --merged | egrep -v "(^\*|master)" | xargs git branch -d'
+alias gitselectbranch='git branch | termenu | xargs git co'
+alias ssh-proxy='ssh -D 9999 -f -C -N '
