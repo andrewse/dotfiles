@@ -1,0 +1,16 @@
+alias cc='git grep ">>>>>>>"'
+alias ll='ls -lt'
+
+alias portsinuse='lsof -iTCP -sTCP:LISTEN -n -P'
+alias colourdiff='colordiff'
+
+alias brewdo='brew update && brew upgrade && brew cask upgrade && brew cleanup'
+
+alias grh='git reset --hard'
+alias whcs='git diff-tree --no-commit-id --name-only -r'
+alias gs='git status'
+
+alias glol='git log --pretty=format:"%C(yellow)%<(15)%h%Creset%C(magenta)%<(30)%p%Creset%x09%<(30)%an%x09%Cred%ar%x09%Creset%s"'
+alias gcd='git cherry -v'
+
+alias ssh-proxy='ssh -D 9999 -f -C -N'

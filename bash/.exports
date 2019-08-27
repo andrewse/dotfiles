@@ -1,0 +1,6 @@
+#Add syntax highlighting to LESS
+export LESSOPEN="| /usr/local/bin/src-hilite-lesspipe.sh %s"
+export LESS=' -R -N -S'
+
+export GOPATH=$HOME/src/go
+export "ANDROID_HOME=/usr/local/opt/android-sdk"

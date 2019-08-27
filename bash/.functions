@@ -1,0 +1,141 @@
+function safe_brew_source() {
+    if which brew &> /dev/null && [ -f "$(brew --prefix)/$1" ]; then
+    	source "$(brew --prefix)/$1";
+    fi;
+}
+
+function pyprof() {
+    workon pyprof
+    ipython ~/workspace/pyprof/simpletest.py
+}
+
+#Search local repository to find where a particular plugin lives by greping the scm tags in pom files
+function wtfi() {
+    #find "$HOME/.m2/repository" -name "*$1*.pom" -print0 | xargs -0 grep -oh "scm:[^<]*";
+    source $HOME/src/scripts/wtfi/wtfi.bash
+}
+
+function hs() {
+#Search history for commands
+	#history | grep "$*";
+	#30 will need to be bumped to 31 once I reach more than 99 999 lines in the history file
+	history | cut -c 30- | grep "$*" | uniq;
+}
+
+function edit-settings() {
+    mvim $HOME/src/scripts/$1-settings.bash
+}
+
+function manifesto_diff() {
+    [ -z $1 ] && {
+        echo 'usage: manifesto_diff <oldhash> <newhash>'
+        echo '       oldhash        the old manifesto hash'
+        echo '       newhash        the new manifesto hash'
+        return
+    }
+
+    curl 'https://manifesto.atlassian.io/api/hash/diff/'$1'/'$2 2> /dev/null \
+        | jq '"jira" as $product
+        | {
+            "modifiedFrom": {
+                "products": .modifiedFrom.products | map(select(.artifact == $product or .artifact == "icebat")),
+                "plugins": .modifiedFrom.plugins | map(select(.product == $product))
+            },
+            "modifiedTo": {
+                "products": .modifiedTo.products | map(select(.artifact == $product or .artifact == "icebat")),
+                "plugins": .modifiedTo.plugins | map(select(.product == $product))
+            },
+            "added": .added,
+            "removed": {
+                "products": .removed.products | map(select(.artifact == $product or .artifact == "icebat")),
+                "plugins": .removed.plugins | map(select(.product == $product))
+            }
+        }
+        | . as $changes
+        | {
+            "added": .added,
+            "removed": .removed,
+            "modified": {
+                "products": .modifiedFrom.products | map({"artifact": .artifact, "version": (.version + " -> " + (. as $from | ($changes.modifiedTo.products | map(select(.artifact == $from.artifact))) | .[0].version))}),
+                "plugins": .modifiedFrom.plugins | map({"artifact": .artifact, "version": (.version + " -> " + (. as $from | ($changes.modifiedTo.plugins | map(select(.artifact == $from.artifact))) | .[0].version))})
+            }
+        }'
+}
+
+function httphere {
+    python -m SimpleHTTPServer 8000
+}
+
+function ondemand-commands-diagnostics() {
+    ssh $1 'heap_dump jira; for i in `seq 1 5`; do echo "Thread dump " $i; thread_dump jira > thread-dump-`date +%s`.txt; sleep 5; done; tar -czvf diagnostics-jira.tar.gz thread-dump-*.txt /data/jirastudio/service/debug/jira/jira-`pid jira`.hprof; rm -f thread-dump-*.txt ; rm -f /data/jirastudio/service/debug/jira/jira-`pid jira`.hprof;';
+    scp root@$1:diagnostics-jira.tar.gz .
+}
+
+function ondemand-commands-ssh() {
+    ssh $1.jira-dev.com
+}
+
+#functions to define git alias that can be evaluated with variables
+function gdiff() { git diff "$@" ;}
+function gcam() { git commit -am "$*";}
+#issueKey = `git rev-parse --abbrev-ref HEAD | egrep -o '[A-Za-z]{1,}-\d{1,}'`;
+
+#function glol() {
+#    git log --pretty=format:"%C(yellow)%<(10)%h%Creset%C(magenta)%<(20)%p%Creset%x09%<(20)%an%x09%Cred%ar%x09%Creset%s" $@;
+#}
+#
+#function glolnp() {
+#    git --no-pageer log --pretty=format:"%C(yellow)%<(10)%h%Creset%C(magenta)%<(20)%p%Creset%x09%<(20)%an%x09%Cred%ar%x09%Creset%s" $@;
+#}
+
+function _get_revision {
+    if [ -z $1]; then
+        return "HEAD"
+    fi
+    return $1;
+}
+
+function gitwcb {
+    git diff $1~..$1;
+}
+
+function gitwca {
+    git diff $1..$1~;
+}
+
+function gitdm {
+    git diff $1^1..$1^2
+}
+
+function gitgoback {
+    git reset HEAD@{$1}
+}
+
+function ipaddress() {
+    # https://stackoverflow.com/questions/23934425/parse-ifconfig-to-get-only-my-ip-address-using-bash
+    ifconfig en0 | awk '$1 == "inet" {print $2}'
+}
+
+function read_secret() {
+    export $1="$(bash -c 'read -p "Enter value for '$1':" -s $1 && echo ${1}')"
+}
+
+# Used for Pet https://github.com/knqyf263/pet#register-the-previous-command-easily to register the previous command
+# to be stored in the snippet repo
+function prev() {
+  PREV=$(fc -lrn | head -n 1)
+  sh -c "pet new `printf %q "$PREV"`"
+}
+
+
+
+function ideamerge () {
+    # Gets the absolute path for the arguments passed in
+    # https://stackoverflow.com/questions/3915040/bash-fish-command-to-print-absolute-path-to-a-file#3915776
+    /Applications/IntelliJ\ IDEA.app/Contents/MacOS/idea diff "$(cd "$(dirname "$1")"; pwd)/$(basename "$1")" "$(cd "$(dirname "$2")"; pwd)/$(basename "$2")"
+}
+
+function bindiff() {
+    # Convert two binary files to HEX and then see how they might be different
+    diff <(xxd $1) <(xxd $2)
+}
