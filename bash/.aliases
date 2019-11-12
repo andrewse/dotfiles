@@ -14,3 +14,4 @@ alias glol='git log --pretty=format:"%C(yellow)%<(15)%h%Creset%C(magenta)%<(30)%
 alias gcd='git cherry -v'
 
 alias ssh-proxy='ssh -D 9999 -f -C -N'
+alias gmu='cd ~/src/atlassian/jira-green-master && git pull && cd -'
