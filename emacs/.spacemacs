@@ -409,6 +409,7 @@ you should place your code here."
         org-log-repeat 'time
         org-log-reschedule 'time
         org-closed-keep-when-no-todo t
+        org-log-into-drawer t
         org-agenda-text-search-extra-files (list 'agenda-archives)
         ; Bulk agenda command to remove TODO keywords from items
         org-agenda-bulk-custom-functions '((?C (lambda nil (org-agenda-todo ""))))
