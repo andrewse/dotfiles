@@ -62,9 +62,9 @@ values."
    dotspacemacs-additional-packages '(
         org-plus-contrib
         org-ref
-        emojify
-        company-emoji
-        org-trello
+;        emojify
+;        company-emoji
+;        org-trello
    )
 
    ;; A list of packages that cannot be updated.
@@ -411,6 +411,8 @@ you should place your code here."
         org-closed-keep-when-no-todo t
         org-log-into-drawer t
         org-agenda-text-search-extra-files (list 'agenda-archives)
+        ; Makes org not indent everything to the level of the heading but instead things are right aligned
+        org-adapt-indentation nil
         ; Bulk agenda command to remove TODO keywords from items
         org-agenda-bulk-custom-functions '((?C (lambda nil (org-agenda-todo ""))))
 ;        org-agenda-todo-ignore-scheduled, org-agenda-todo-ignore-deadlines, org-agenda-todo-ignore-timestamp
@@ -650,167 +652,9 @@ is nil, refile in the current file."
 (add-hook 'org-mode-hook 'semps/custom-org-mode-keybindings)
 
 ;; Sourced from https://emacs.stackexchange.com/questions/26442/
-(require 'org-archive)
+;(require 'org-archive)
 (require 'org-id)
 
-(defun org-copy-task-hierarchy (filename)
-    "This function copies a task/project and its parent hierarchy tree to the given filename"
-    (interactive)
-    (let ((this-buffer (current-buffer))
-          (file (abbreviate-file-name
-                (or (buffer-file-name (buffer-base-buffer))
-                    (error "No file associated to buffer")))))
-        (save-excursion
-            ; prepare the target buffer to paste things into
-            (setq infile-p (equal file (abbreviate-file-name (or filename ""))))
-            (unless filename (error "Invalid target location"))
-            (if (> (length filename) 0)
-                (setq newfile-p (not (file-exists-p filename))
-                      visiting (find-buffer-visiting filename)
-                      buffer (or visiting (find-file-noselect filename)))
-              (setq buffer (current-buffer)))
-            (unless buffer (error "Cannot access file \"%s\"" filename))
-
-            ; construct hierarchy structure and copy current element
-            (setq elem-id (org-id-get-create)
-                  id-tree (org-copy-task-hierarchy--construct-id-tree))
-            (org-copy-subtree nil nil nil t)
-
-            ; move to the target buffer
-            (set-buffer buffer)
-            (org-mode)
-            (goto-char (point-min)) ; move point to top of the buffer
-
-            ; iterate through id-tree to paste in elements if needed
-            (setq prev-id nil)
-            (while (not (eq id-tree nil))
-                (let* ((tree-elem-id       (caar id-tree))
-                       (tree-elem-headline (nth 1 (car id-tree)))
-                       (tree-elem-contents (nth 2 (car id-tree)))
-                       (tree-elem-todo     (nth 3 (car id-tree)))
-                       (tree-elem-fullbody (nth 4 (car id-tree)))
-                       (target-location    (org-id-find-id-in-file tree-elem-id (buffer-file-name))))
-                    (if (eq target-location nil) ; id doesn't exist
-                        ; insert elem-fullbody
-                        (progn
-                            (if (eq prev-id nil)
-                                (goto-char (point-max)) ; move point to end of buffer
-                              (setq prev-location (org-id-find-id-in-file prev-id (buffer-file-name)))
-                              (unless prev-location
-                                (error "ERROR: Could not find id %s in file %s" prev-location buffer-file-name))
-                              (goto-char (cdr prev-location))
-                              (org-end-of-subtree t t)) ; move point after subtrees of previous entry
-                            (insert tree-elem-fullbody)
-                            (save-buffer)) ; needed for org-id-find-id-in-file to find newly added IDs
-
-                        ; id already exists, check for what's different
-                        (goto-char (cdr target-location)) ; move point to target
-                        (let* ((target-id (org-id-get))
-                               (target-headline (org-get-heading t t))
-                               (target-contents (org-get-entry-no-subtrees t))
-                               (target-todo     (org-get-todo-state))
-                               (match-headline-p (equal target-headline tree-elem-headline))
-                               (match-contents-p (equal target-contents tree-elem-contents))
-                               (match-todo-p     (equal target-todo tree-elem-todo)))
-                            (if (or (and match-headline-p match-contents-p (not match-todo-p)
-                                         ;(equal tree-elem-todo "DONE") (equal tree-elem-todo "COMPLETE"))
-                                         (member (tree-elem-todo) org-done-keywords))
-                                    (and match-headline-p (not match-contents-p))
-                                    (and (not match-headline-p) match-contents-p))
-                                ; update target element with tree element
-                                (org-replace-full-entry tree-elem-fullbody)
-                                ; check if neither title nor contents match
-                              (when (and (not match-headline-p) (not match-contents-p))
-                                  (error "ERROR updating id %s -
-                                          title and body too different from existing" tree-elem-id)))))
-                    (setq prev-id tree-elem-id))
-                ; headers, content, todo state are all same; skip and go to next elem
-                (setq id-tree (cdr id-tree)))
-
-            (when (not (eq this-buffer buffer))
-                (save-buffer))
-            (message "Subtree copied %s" (concat "in file: " (abbreviate-file-name filename))))))
-
-(defun org-copy-task-hierarchy--construct-id-tree ()
-    "Construct and return a list/tree containing the IDs and content of the hierarchy"
-    (let ((id-tree nil))
-        (save-excursion
-            (while (org-up-heading-safe)
-                (org-back-to-heading t) ; set point to heading beginning
-                ; get current element's headline, content, and TODO state
-                (setq elem-id       (org-id-get-create)
-                      elem-headline (org-get-heading t t)             ; ignore todo and tags
-                      elem-contents (org-get-entry-no-subtrees t)  ; ignore properties
-                      elem-todo     (org-get-todo-state)
-                      elem-fullbody (org-get-full-entry))
-                ; build id tree in reverse in order
-                (if (eq id-tree nil)
-                    (setq id-tree (cons (list elem-id elem-headline elem-contents elem-todo elem-fullbody) nil))
-                  (setq id-tree
-                      (cons (list elem-id elem-headline elem-contents elem-todo elem-fullbody) id-tree)))
-                ))
-        ; append current element to tree
-        (setq id-tree (nconc id-tree (cons (list (org-id-get-create)
-                                                 (org-get-heading t t)
-                                                 (org-get-entry-no-subtrees t)
-                                                 (org-get-todo-state)
-                                                 (org-get-full-entry)) nil)))
-        id-tree))
-
-(defun org-get-full-entry ()
-    "Get the entry text, including heading, no subtrees.
-     If no-properties is non-nil, ignore the text properties of the entry"
-    (interactive)
-    (save-excursion
-        (let (beg end)
-            (org-back-to-heading t) ; set point to heading beginning
-            (setq beg (point))
-            (skip-chars-forward " \t\r\n")
-            (save-match-data (outline-next-heading)) ; move point to next heading line
-            (setq end (point))
-            (goto-char beg)
-            (buffer-substring-no-properties beg end))))
-
-(defun org-get-entry-no-subtrees (&optional no-properties)
-    "Get the entry text, after heading, no subtrees.
-     If no-properties is non-nil, ignore the text properties of the entry"
-    (interactive)
-    (save-excursion
-        (let (beg end)
-            (org-back-to-heading t) ; set point to heading beginning
-            (setq beg (point-at-bol 2))
-            (skip-chars-forward " \t\r\n")
-            (save-match-data (outline-next-heading)) ; move point to next heading line
-            (setq end (point))
-            (goto-char beg)
-            (if no-properties
-                (buffer-substring-no-properties beg end)
-              (buffer-substring beg end)))))
-
-(defun org-replace-full-entry (&optional text)
-    "Replace the entry text, including heading but excluding subtrees, with the given text.
-     If text is nil, simply delete the entry text."
-    (interactive)
-    (save-excursion
-        (let (beg end)
-            (org-back-to-heading t) ; set point to heading beginning
-            (setq beg (point))
-            (skip-chars-forward " \t\r\n")
-            (save-match-data (outline-next-heading)) ; move point to next heading line
-            (setq end (point))
-            (goto-char beg)
-            (delete-region beg end)
-            (when text
-                (insert text)))))
-
-;; Unused I don't trust just using this code at the moment I feel that there might be an easier alternative with modifying
-;; The logic in the org-archive::org-archive-subtree command
-(defun archive-log ()
-    "Copy current subtree and ancestors to archive.org_archive, then archive to completed.org_archive"
-    (interactive "P")
-    (org-copy-task-hierarchy
-        (concat "./archive-" (format-time-string "%Y%m" (current-time)) ".org_archive"))
-    (org-archive-subtree-default))
 
 
 ; Adds the private directory to the load path. Yes this could be configured as a layer but I'm starting to think that the amount of effort that I need to put into maintaining the spacemacs configuration isn't really worth it.
