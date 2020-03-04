@@ -616,6 +616,18 @@ is nil, refile in the current file."
       org-journal-file-format "%G-%m-%B.org"
       org-journal-enable-agenda-integration t)
 
+(defun replace-in-string (what with in)
+  (replace-regexp-in-string (regexp-quote what) with in nil 'literal))
+
+(defun org-journal-file-header-func ()
+  "Custom function to create journal header."
+  (concat
+    (pcase org-journal-file-type
+      (`monthly (format-time-string "#+TITLE: %B Journal\n#+STARTUP: folded")))))
+
+(setq org-journal-file-header 'org-journal-file-header-func)
+
+
 (require 'org-journal)
 
 
