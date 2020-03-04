@@ -31,6 +31,7 @@ values."
    ;; List of configuration layers to load.
    dotspacemacs-configuration-layers
    '(
+     html
      ;; ----------------------------------------------------------------
      ;; Example of useful layers you may want to use right away.
      ;; Uncomment some layer names and press <SPC f e R> (Vim style) or
@@ -314,12 +315,11 @@ It is called immediately after `dotspacemacs/init', before layer configuration e
 This function is mostly useful for variables that need to be set
 before packages are loaded. If you are unsure, you should try in setting them in
 `dotspacemacs/user-config' first."
-
-
-(require 'package)
-(let* ((no-ssl (and (memq system-type '(windows-nt ms-dos))
-                    (not (gnutls-available-p))))
-       (proto (if no-ssl "http" "https")))
+ 
+  (require 'package)
+  (let* ((no-ssl (and (memq system-type '(windows-nt ms-dos))
+                      (not (gnutls-available-p))))
+         (proto (if no-ssl "http" "https")))
   ;; Comment/uncomment these two lines to enable/disable MELPA and MELPA Stable as desired
   (add-to-list 'package-archives (cons "melpa" (concat proto "://melpa.org/packages/")) t)
   ;;(add-to-list 'package-archives (cons "melpa-stable" (concat proto "://stable.melpa.org/packages/")) t)
@@ -332,7 +332,7 @@ before packages are loaded. If you are unsure, you should try in setting them in
 ;;(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
 
 (add-to-list 'package-archives '("org" . "https://orgmode.org/elpa/") t) ; Org-mode's repository
-(add-to-list 'package-archives '("melpa-stable-org-trello" . "http://melpa-stable.milkbox.net/packages/") t) ; org-trello
+;(add-to-list 'package-archives '("melpa-stable-org-trello" . "http://melpa-stable.milkbox.net/packages/") t) ; org-trello
   )
 
 (defun dotspacemacs/user-config ()
@@ -346,8 +346,9 @@ you should place your code here."
 ;; This enables Emacs to save in UTF-8 encoding by default as well as creating a character map
 ;; That will autoconvert sequences into the UTF-8 equiv
 
-(set-language-environment "UTF-8")
-(set-default-coding-systems 'utf-8)
+  (set-locale-environment "en_AU")
+  (set-language-environment "UTF-8")
+  (set-default-coding-systems 'utf-8)
 
 (define-abbrev-table 'global-abbrev-table '(
     ("alpha" "α")
@@ -399,7 +400,7 @@ you should place your code here."
         org-default-notes-file (concat org-directory "/notes.org")
         org-attach-directory (concat org-directory "/attachments")
         ispell-program-name "aspell"
-        org-archive-location (concat org-directory "/archive/%s_archive::")
+        org-archive-location (concat org-directory "/Archive/%s_archive::")
         org-special-ctrl-a/e t
         org-return-follows-link t
         org-enforce-todo-dependencies t
@@ -415,9 +416,9 @@ you should place your code here."
         org-adapt-indentation nil
         ; Bulk agenda command to remove TODO keywords from items
         org-agenda-bulk-custom-functions '((?C (lambda nil (org-agenda-todo ""))))
-;        org-agenda-todo-ignore-scheduled, org-agenda-todo-ignore-deadlines, org-agenda-todo-ignore-timestamp
-;        org-agenda-todo-ignore-with-date
-                                        ;        org-agenda-todo-list-sublevels
+                                        ; org-agenda-todo-ignore-scheduled, org-agenda-todo-ignore-deadlines, org-agenda-todo-ignore-timestamp
+                                        ; org-agenda-todo-ignore-with-date
+                                        ; org-agenda-todo-list-sublevels
         org-agenda-skip-deadline-if-done t
         org-agenda-skip-scheduled-if-done t
         org-agenda-skip-timestamp-if-done t
@@ -448,6 +449,7 @@ you should place your code here."
 (add-hook 'org-mode-hook 'git-auto-commit-mode)
 
 (quelpa '(visual-fill-column :fetcher github :repo "joostkremers/visual-fill-column"))
+
 (require 'package) (package-initialize)
                                         ;(require 'visual-fill-column)
 ;; Copied settings to enable autofill mode for orgmode
@@ -460,7 +462,7 @@ you should place your code here."
           ;; Turn off line numbering, it makes org so slow
           ;;(linum-mode -1)
           ;; Set fill column to 120
-          (setq fill-column 90)
+          (setq fill-column 100)
           (visual-fill-column-mode t)
           (visual-line-mode t)
           ;; https://stackoverflow.com/questions/3281581/how-to-word-wrap-in-emacs
@@ -472,88 +474,17 @@ you should place your code here."
 ;; This isn't working in org-mode after a package update in Jan 2019
 (global-set-key (kbd "M-<tab>") 'flyspell-auto-correct-word)
 
-(require 'org-trello)
-(custom-set-variables '(org-trello-files '("~/.asorganise/Orgmode/house-of-the-rising-moo.org")))
+; (require 'org-trello)
+;(custom-set-variables '(org-trello-files '("~/.asorganise/Orgmode/house-of-the-rising-moo.org")))
 
 
-;; You are able to define keybindings just for Org-mode via
-;; https://stackoverflow.com/questions/21773679/emacs-org-mode-file-local-key-binding#21774528
-;; These are templates use to create the capture entires in org-mode
-;; https://www.mail-archive.com/emacs-orgmode@gnu.org/msg113478.html
-;; https://www.mail-archive.com/emacs-orgmode@gnu.org/msg113776.html
-;; http://orgmode.org/manual/Template-elements.html#Template-elements
-;; Multi line template keys
-;; https://lists.gnu.org/archive/html/emacs-orgmode/2017-01/msg00382.html
-(setq org-capture-templates '(
-	(   "t" "TODO: create a TODO for either work or home"
-    )
-        (   "tw" "Work"
-             entry (file (lambda () (concat org-directory "/atlassian.org" )))
-            "* TODO %?"
-            :empty-lines 1
-        )
-        (   "th" "Home"
-             entry (file (lambda () (concat org-directory "/personal.org" )))
-            "* TODO %?"
-            :empty-lines 1
-        )
-    (   "p" "People" )
-        (   "po" "One on One"
-             entry (file (lambda () (concat org-directory "/people.org" )))
-            "* Scheduled One on One %U :oneonone:%^G\n%?"
-            :empty-lines 1
-        )
-        (   "pn" "Note"
-             entry (file (lambda () (concat org-directory "/people.org" )))
-            "* Note %U %? :note:%^g"
-            :empty-lines 1
-        )
-        (   "pf" "Feedback"
-             entry (file (lambda () (concat org-directory "/people.org" )))
-            "* Feedback %U %? :feedback:%^g"
-            :empty-lines 1
-        )
-	(   "j" "Journal" )
-    	(   "jw" "Work"
-    	    entry (file+olp+datetree (lambda () (concat org-directory "/atlassian-journal.org" )))
-            "* %?"
-            :empty-lines 1
-        )
-        (   "jh" "Home"
-            entry (file+olp+datetree (lambda () (concat org-directory "/personal-journal.org" )))
-            "* %?"
-            :empty-lines 1
-        )
-        (   "jm" "Meeting notes"
-             entry (file+olp+datetree ( lambda () (concat org-directory "/atlassian-journal.org" )))
-            "* %? :meeting:"
-            :empty-lines 1
-            )
-        ( "i" "Idea" entry (file  (lambda () (concat org-directory "/ideas.org"))) "* %?" :empty-lines 1 )
-        ( "v" "Interview Feedback" entry (file+olp+datetree ( lambda () (concat org-directory "/atlassian-journal.org" )))
-          "* Interview for %^{Candidates name} for %^{Interviewing for} :interview:
-Summary: 
 
-Key:
-- = Note
-- -Negative
-- +Positive
-- /Eh? Open for discussion, based on personal preference a positive or negative
-
-- %?"
-          :empty-lines 1
-          )
-        ( "c" "Save CLI Command" entry (file  (lambda () (concat org-directory "/commands.org"))) "* %^{Description of command}
-#+begin_src sh
- %?
-#+end_src" :empty-lines 1 )
-))
 
 ;; Set the place that org agenda will look for files to build the agenda based on
 ;; http://stackoverflow.com/questions/11384516/how-to-make-all-org-files-under-a-folder-added-in-agenda-list-automatically
 ;; http://superuser.com/questions/633746/loading-all-org-files-on-a-folder-to-agenda#633789
 (setq org-agenda-files ( quote("~/.asorganise/Orgmode/"
-			       "~/.asorganise/Orgmode/archive")))
+			       "~/.asorganise/Orgmode/Archive")))
 
 ;; From http://emacs.stackexchange.com/questions/26119/org-mode-adding-a-properties-drawer-to-a-capture-template
 ;; https://emacs.stackexchange.com/questions/21291/add-created-timestamp-to-logbook
@@ -647,23 +578,103 @@ is nil, refile in the current file."
 
 ; https://stackoverflow.com/questions/10838235/emacs-set-shortcut-key-only-in-major-mode
 (defun semps/custom-org-mode-keybindings ()
-  (global-set-key (kbd "C-M-<return>") 'org-insert-item))
+  (global-set-key (kbd "C-M-<return>") 'org-insert-item)
+  (global-set-key (kbd "C-c C-r") 'org-refile)
+)
 
-(add-hook 'org-mode-hook 'semps/custom-org-mode-keybindings)
+(add-hook 'spacemacs-post-user-config-hook 'semps/custom-org-mode-keybindings)
 
 ;; Sourced from https://emacs.stackexchange.com/questions/26442/
 ;(require 'org-archive)
 (require 'org-id)
 
+(add-hook 'org-insert-heading-hook
+          (lambda()
+            (org-map-entries '(org-expiry-insert-created) nil 'tree)
+            (org-map-entries '(org-id-get-create) nil 'tree)))
+                                        ; Adds the private directory to the load path. Yes this could be configured as a layer but
+                                        ; I'm starting to think that the amount of effort that I need to put into maintaining the
+                                        ; spacemacs configuration isn't really worth it.
 
-
-; Adds the private directory to the load path. Yes this could be configured as a layer but I'm starting to think that the amount of effort that I need to put into maintaining the spacemacs configuration isn't really worth it.
 (add-to-list 'load-path "~/.emacs.d/private/semps")
-
 (require 'load-directory)
+(require 'org-mode-extensions)
 
-;(require 'emojify)
-;(require 'company-emoji)
+(defun org-journal-find-location ()
+  ;; Open today's journal, but specify a non-nil prefix argument in order to
+  ;; inhibit inserting the heading; org-capture will insert the heading.
+  (org-journal-new-entry t)
+  ;; Position point on the journal's top-level heading so that org-capture
+  ;; will add the new entry as a child entry.
+  (goto-char (point-min)))
+
+
+
+(quelpa '(org-journal :fetcher github :repo "bastibe/org-journal"))
+(setq org-journal-dir  (concat org-directory "/Journal" )
+      org-journal-file-type 'monthly
+      org-journal-file-format "%G-%m-%B.org"
+      org-journal-enable-agenda-integration t)
+
+(require 'org-journal)
+
+
+;; You are able to define keybindings just for Org-mode via
+;; https://stackoverflow.com/questions/21773679/emacs-org-mode-file-local-key-binding#21774528
+;; These are templates use to create the capture entires in org-mode
+;; https://www.mail-archive.com/emacs-orgmode@gnu.org/msg113478.html
+;; https://www.mail-archive.com/emacs-orgmode@gnu.org/msg113776.html
+;; http://orgmode.org/manual/Template-elements.html#Template-elements
+;; Multi line template keys
+;; https://lists.gnu.org/archive/html/emacs-orgmode/2017-01/msg00382.html
+(setq org-capture-templates '(
+                              ("t" "TODO: create a TODO for either work or home")
+                              ("tw" "Work" entry (file (lambda () (concat org-directory "/atlassian.org" ))) "* TODO %?" :empty-lines 1)
+                              ("th" "Home" entry (file (lambda () (concat org-directory "/personal.org" ))) "* TODO %?" :empty-lines 1)
+                              ("j" "Journal entry" entry (function org-journal-find-location) "* %(format-time-string org-journal-time-format)%^{Title}\n%i%?")
+                              ( "i" "Idea" entry (file  (lambda () (concat org-directory "/ideas.org"))) "* %?" :empty-lines 1 )
+))
+
+
+;(quelpa '(org-roam :fetcher github :repo "jethrokuan/org-roam"))
+;(require 'org-roam)
+;(setq org-roam-directory 'org-directory)
+
+(quelpa '(org-download :fetcher github :repo "abo-abo/org-download"))
+(require 'org-download)
+
+(setq org-download-timestamp t
+      org-download-method 'attach
+      org-download-screenshot-method "screencapture -i %s")
+
+(add-hook 'dired-mode-hook 'org-download-enable)
+
+
+(defun my-org-screenshot ()
+  "Take a screenshot into a time stamped unique-named file in the
+same directory as the org-buffer and insert a link to this file."
+  (interactive)
+  (org-display-inline-images)
+  (setq filename
+        (concat
+         (make-temp-name
+          (concat (file-name-nondirectory (buffer-file-name))
+                  "_imgs/"
+                  (format-time-string "%Y%m%d_%H%M%S_")) ) ".png"))
+  (unless (file-exists-p (file-name-directory filename))
+    (make-directory (file-name-directory filename)))
+                                        ; take screenshot
+  (if (eq system-type 'darwin)
+      (call-process "screencapture" nil nil nil "-i" filename))
+  (if (eq system-type 'gnu/linux)
+      (call-process "import" nil nil nil filename))
+                                        ; insert into file if correctly taken
+  (if (file-exists-p filename)
+      (insert (concat "[[file:" filename "]]"))))
+
+
+                                        ;(require 'emojify)
+                                        ;(require 'company-emoji)
 
                                         ; https://github.com/iqbalansari/emacs-emojify
                                         ; https://github.com/dunn/company-emoji
@@ -684,10 +695,13 @@ is nil, refile in the current file."
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(org-trello-current-prefix-keybinding "C-c o")
  '(package-selected-packages
    (quote
-    (visual-fill-column git-auto-commit-mode yaml-mode ws-butler winum which-key volatile-highlights vi-tilde-fringe uuidgen use-package toc-org spaceline powerline smeargle restart-emacs rainbow-delimiters popwin persp-mode pcre2el paradox spinner orgit org-trello dash-functional request-deferred deferred org-ref pdf-tools key-chord ivy helm-bibtex biblio parsebib biblio-core tablist org-present org-pomodoro alert log4e gntp org-plus-contrib org-mime org-download org-bullets open-junk-file neotree move-text mmm-mode markdown-toc markdown-mode magit-gitflow magit-popup macrostep lorem-ipsum linum-relative link-hint ledger-mode indent-guide hydra lv hungry-delete htmlize hl-todo highlight-parentheses highlight-numbers parent-mode highlight-indentation helm-themes helm-swoop helm-projectile projectile helm-mode-manager helm-make helm-gitignore request helm-flx helm-descbinds helm-company helm-c-yasnippet helm-ag graphviz-dot-mode google-translate golden-ratio gnuplot gitignore-mode gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link gh-md fuzzy flyspell-correct-helm flyspell-correct flycheck-pos-tip pos-tip flycheck-ledger flycheck pkg-info epl flx-ido flx fill-column-indicator fancy-battery eyebrowse expand-region exec-path-from-shell evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-search-highlight-persist highlight evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-magit magit transient git-commit with-editor evil-lisp-state smartparens evil-indent-plus evil-iedit-state iedit evil-exchange evil-escape evil-ediff evil-args evil-anzu anzu evil goto-chg undo-tree eval-sexp-fu emojify ht elisp-slime-nav dumb-jump f dash s diminish define-word company-statistics company-emoji company column-enforce-mode clean-aindent-mode bind-map bind-key auto-yasnippet yasnippet auto-highlight-symbol auto-dictionary auto-compile packed aggressive-indent adaptive-wrap ace-window ace-link ace-jump-helm-line helm avy helm-core async ac-ispell auto-complete popup))))
+    (smartparens company helm-core alert hydra web-mode org-ref ivy parsebib tablist ledger-mode expand-region evil-magit evil flycheck helm org-plus-contrib magit transient lv yaml-mode ws-butler winum which-key volatile-highlights visual-fill-column vi-tilde-fringe uuidgen use-package toc-org tagedit spaceline smeargle slim-mode scss-mode sass-mode restart-emacs rainbow-delimiters pug-mode popwin persp-mode pdf-tools pcre2el paradox orgit org-present org-pomodoro org-mime org-journal org-download org-bullets open-junk-file neotree move-text mmm-mode markdown-toc magit-gitflow macrostep lorem-ipsum linum-relative link-hint key-chord indent-guide hungry-delete htmlize hl-todo highlight-parentheses highlight-numbers highlight-indentation helm-themes helm-swoop helm-projectile helm-mode-manager helm-make helm-gitignore helm-flx helm-descbinds helm-css-scss helm-company helm-c-yasnippet helm-bibtex helm-ag graphviz-dot-mode goto-chg google-translate golden-ratio gnuplot gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link git-commit git-auto-commit-mode gh-md fuzzy flyspell-correct-helm flycheck-pos-tip flycheck-ledger flx-ido fill-column-indicator fancy-battery eyebrowse exec-path-from-shell evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-search-highlight-persist evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-lisp-state evil-indent-plus evil-iedit-state evil-exchange evil-escape evil-ediff evil-args evil-anzu eval-sexp-fu emmet-mode elisp-slime-nav dumb-jump diminish define-word company-web company-statistics column-enforce-mode clean-aindent-mode auto-yasnippet auto-highlight-symbol auto-dictionary auto-compile aggressive-indent adaptive-wrap ace-window ace-link ace-jump-helm-line ac-ispell)))
+ '(quote
+   (package-selected-packages
+    (quote
+     (org-journal web-mode tagedit slim-mode scss-mode sass-mode pug-mode helm-css-scss haml-mode emmet-mode company-web web-completion-data visual-fill-column git-auto-commit-mode yaml-mode ws-butler winum which-key volatile-highlights vi-tilde-fringe uuidgen use-package toc-org spaceline powerline smeargle restart-emacs rainbow-delimiters popwin persp-mode pcre2el paradox spinner orgit org-trello dash-functional request-deferred deferred org-ref pdf-tools key-chord ivy helm-bibtex biblio parsebib biblio-core tablist org-present org-pomodoro alert log4e gntp org-plus-contrib org-mime org-download org-bullets open-junk-file neotree move-text mmm-mode markdown-toc markdown-mode magit-gitflow magit-popup macrostep lorem-ipsum linum-relative link-hint ledger-mode indent-guide hydra lv hungry-delete htmlize hl-todo highlight-parentheses highlight-numbers parent-mode highlight-indentation helm-themes helm-swoop helm-projectile projectile helm-mode-manager helm-make helm-gitignore request helm-flx helm-descbinds helm-company helm-c-yasnippet helm-ag graphviz-dot-mode google-translate golden-ratio gnuplot gitignore-mode gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link gh-md fuzzy flyspell-correct-helm flyspell-correct flycheck-pos-tip pos-tip flycheck-ledger flycheck pkg-info epl flx-ido flx fill-column-indicator fancy-battery eyebrowse expand-region exec-path-from-shell evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-search-highlight-persist highlight evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-magit magit transient git-commit with-editor evil-lisp-state smartparens evil-indent-plus evil-iedit-state iedit evil-exchange evil-escape evil-ediff evil-args evil-anzu anzu evil goto-chg undo-tree eval-sexp-fu emojify ht elisp-slime-nav dumb-jump f dash s diminish define-word company-statistics company-emoji company column-enforce-mode clean-aindent-mode bind-map bind-key auto-yasnippet yasnippet auto-highlight-symbol auto-dictionary auto-compile packed aggressive-indent adaptive-wrap ace-window ace-link ace-jump-helm-line helm avy helm-core async ac-ispell auto-complete popup)))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
