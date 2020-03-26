@@ -1,0 +1,6 @@
+# https://stackoverflow.com/questions/43378060/meaning-of-the-github-message-push-declined-due-to-email-privacy-restrictions
+[user]
+    name = Andrew Semple
+
+[remote "origin"]
+    url = atlassian-bitbucket
