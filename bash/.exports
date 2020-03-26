@@ -4,3 +4,4 @@ export LESS=' -R -N -S'
 
 export GOPATH=$HOME/src/go
 export "ANDROID_HOME=/usr/local/opt/android-sdk"
+export ANDROID_SDK_ROOT="/Users/asemple/Library/Android/sdk"

@@ -2,6 +2,7 @@
 jira=$(git symbolic-ref -q HEAD | grep -o "[A-Z]\+-[0-9]\+")
 # The if is commentd because it will not with the gcam command that I have as 
 # because the below line dones't hold true
-#if [[ -z "$(head -n1 $1)" ]]; then # Check that this is not an amend by checking that the first line is empty
+# Check that this is not an amend by checking that the first line is empty
+#if [[ -z "$(head -n1 $1)" ]]; then 
     echo -e "0a\n$jira \n.\nw\nq" | ed -s $1
 #fi

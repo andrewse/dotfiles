@@ -25,6 +25,7 @@
 	show-merge = "!sh -c 'merge=$(git find-merge $0 $1) && [ -n \"$merge\" ] && git show $merge'"
 	# https://stackoverflow.com/questions/4981126/how-to-amend-several-commits-in-git-to-change-author/25815116#25815116
 	fix-author = ""
+	cleanup = "!sh -c 'git remote prune origin && git branch --merged master | egrep -v \"\\* master\" | xargs -n 1 git branch -d'"
 [credential]
 	helper = osxkeychain
 [init]
