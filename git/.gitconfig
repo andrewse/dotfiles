@@ -8,6 +8,7 @@
 [alias]
 	pu="![[ $(git config \"branch.$(git rev-parse --abbrev-ref HEAD).merge\") = '' ]] && git push -u origin $(git rev-parse --abbrev-ref HEAD) || git push"
 	co="checkout"
+	# https://www.freecodecamp.org/news/bash-shortcuts-to-enhance-your-git-workflow-5107d64ea0ff/
 	create="checkout -b"
 	delete="branch -D"
 	purge=""

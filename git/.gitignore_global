@@ -7,3 +7,5 @@
 .idea/
 .idea
 node_modules/
+postgres.emv
+postgres.env

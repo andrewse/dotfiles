@@ -31,6 +31,7 @@ values."
    ;; List of configuration layers to load.
    dotspacemacs-configuration-layers
    '(
+     javascript
      python
      html
      ;; ----------------------------------------------------------------
@@ -347,19 +348,13 @@ you should place your code here."
 ;; This enables Emacs to save in UTF-8 encoding by default as well as creating a character map
 ;; That will autoconvert sequences into the UTF-8 equiv
 
-  (set-locale-environment "en_AU")
-  (set-language-environment "UTF-8")
-  (set-default-coding-systems 'utf-8)
-
-(define-abbrev-table 'global-abbrev-table '(
-    ("alpha" "α")
-    ("inf" "∞")
-    ("ar" "→")
-    ))
+(set-locale-environment "en_AU")
+(set-language-environment "UTF-8")
+(set-default-coding-systems 'utf-8)
 
 ;; https://emacs.stackexchange.com/questions/18404/can-i-display-org-mode-attachments-as-inline-images-in-my-document
 (require 'org-attach)
-(setq org-link-abbrev-alist '(("att" . org-attach-expand-link)))
+(setq org-link-abbrev-alist '(("attachment" . org-attach-expand-link)))
 (setq org-startup-with-inline-images t)
 
 
@@ -399,7 +394,7 @@ you should place your code here."
 ;; 
 (setq   org-directory "~/.asorganise/Orgmode"
         org-default-notes-file (concat org-directory "/notes.org")
-        org-attach-directory (concat org-directory "/attachments")
+        org-attach-directory (concat org-directory "/Attachments")
         ispell-program-name "aspell"
         org-archive-location (concat org-directory "/Archive/%s_archive::")
         org-special-ctrl-a/e t
@@ -413,17 +408,21 @@ you should place your code here."
         org-closed-keep-when-no-todo t
         org-log-into-drawer t
         org-agenda-text-search-extra-files (list 'agenda-archives)
-        ; Makes org not indent everything to the level of the heading but instead things are right aligned
-        org-adapt-indentation nil
-        ; Bulk agenda command to remove TODO keywords from items
-        org-agenda-bulk-custom-functions '((?C (lambda nil (org-agenda-todo ""))))
+        org-adapt-indentation nil         ; Makes org not indent everything to the level of the heading but instead things are right aligned
+        org-agenda-bulk-custom-functions '((?C (lambda nil (org-agenda-todo ""))))         ; Bulk agenda command to remove TODO keywords from items
                                         ; org-agenda-todo-ignore-scheduled, org-agenda-todo-ignore-deadlines, org-agenda-todo-ignore-timestamp
                                         ; org-agenda-todo-ignore-with-date
                                         ; org-agenda-todo-list-sublevels
         org-agenda-skip-deadline-if-done t
         org-agenda-skip-scheduled-if-done t
         org-agenda-skip-timestamp-if-done t
+        org-id-link-to-org-use-id 'create-if-interactive
         )
+(require 'org-ref)
+
+(setq reftex-default-bibliography '((concat org-directory "/Bibliography/references.bib")))
+(setq org-ref-bibliography-notes (concat org-directory "/Bibliography/references.org")
+      org-ref-pdf-directory (concat org-directory "/Bibliography/Attachments"))
 
 
 ;; https://superuser.com/questions/132218/emacs-git-auto-commit-every-5-minutes
@@ -434,8 +433,11 @@ you should place your code here."
 ;; Set the additional exporters to load which get loaded once the exporter dialogue is opened
 (setq org-export-backends (quote (
        beamer
-       confluence
+       icalendar
        md)))
+
+(require 'ox-md)
+
 ;; https://orgmode.org/worg/org-contrib/
 ;; https://emacs.stackexchange.com/questions/46988/easy-templates-in-org-9-2
 (require 'org-tempo)
@@ -475,27 +477,13 @@ you should place your code here."
 ;; This isn't working in org-mode after a package update in Jan 2019
 (global-set-key (kbd "M-<tab>") 'flyspell-auto-correct-word)
 
-; (require 'org-trello)
-;(custom-set-variables '(org-trello-files '("~/.asorganise/Orgmode/house-of-the-rising-moo.org")))
-
-
-
-
 ;; Set the place that org agenda will look for files to build the agenda based on
 ;; http://stackoverflow.com/questions/11384516/how-to-make-all-org-files-under-a-folder-added-in-agenda-list-automatically
 ;; http://superuser.com/questions/633746/loading-all-org-files-on-a-folder-to-agenda#633789
-(setq org-agenda-files ( quote("~/.asorganise/Orgmode/"
-			       "~/.asorganise/Orgmode/Archive")))
-
-;; From http://emacs.stackexchange.com/questions/26119/org-mode-adding-a-properties-drawer-to-a-capture-template
-;; https://emacs.stackexchange.com/questions/21291/add-created-timestamp-to-logbook
-;; Used to add a CREATED stamp to when items are created using the capture template
-(defun add-created-date-as-property ()
-  "Add CREATED property to the current item."
-  (interactive)
-  (org-set-property "CREATED" (concat "[" (format-time-string "%Y-%m-%d %a %H:%M") "]")))
-
-;; (add-hook 'org-capture-before-finalize-hook 'add-created-date-as-property)
+(setq org-agenda-files
+      ( quote
+        ("~/.asorganise/Orgmode/"
+         "~/.asorganise/Orgmode/Archive")))
 
 ;; How to have a created property added to items
 ;; https://stackoverflow.com/questions/12262220/add-created-date-property-to-todos-in-org-mode
@@ -589,47 +577,27 @@ is nil, refile in the current file."
 ;(require 'org-archive)
 (require 'org-id)
 
-(add-hook 'org-insert-heading-hook
-          (lambda()
-            (org-map-entries '(org-expiry-insert-created) nil 'tree)
-            (org-map-entries '(org-id-get-create) nil 'tree)))
+;(add-hook 'org-insert-heading-hook
+;          (lambda()
+;            (org-map-entries '(org-expiry-insert-created) nil 'tree)
+;            (org-map-entries '(org-id-get-create) nil 'tree)))
                                         ; Adds the private directory to the load path. Yes this could be configured as a layer but
                                         ; I'm starting to think that the amount of effort that I need to put into maintaining the
                                         ; spacemacs configuration isn't really worth it.
 
+(defun semps/create-custom-id-with-id-property(propery-name property-new-value)
+  (interactive)
+  (message "current id is %s" propery-name)
+  (when (string= propery-name "ID")
+    (message "property value is %s" property-new-value)
+    (org-entry-put nil "CUSTOM_ID" property-new-value)))
+
+
+(add-hook 'org-property-changed-functions 'semps/create-custom-id-with-id-property)
+
 (add-to-list 'load-path "~/.emacs.d/private/semps")
 (require 'load-directory)
 (require 'org-mode-extensions)
-
-(defun org-journal-find-location ()
-  ;; Open today's journal, but specify a non-nil prefix argument in order to
-  ;; inhibit inserting the heading; org-capture will insert the heading.
-  (org-journal-new-entry t)
-  ;; Position point on the journal's top-level heading so that org-capture
-  ;; will add the new entry as a child entry.
-  (goto-char (point-min)))
-
-
-
-(quelpa '(org-journal :fetcher github :repo "bastibe/org-journal"))
-(setq org-journal-dir  (concat org-directory "/Journal" )
-      org-journal-file-type 'monthly
-      org-journal-file-format "%G-%m-%B.org"
-      org-journal-enable-agenda-integration t)
-
-(defun replace-in-string (what with in)
-  (replace-regexp-in-string (regexp-quote what) with in nil 'literal))
-
-(defun org-journal-file-header-func ()
-  "Custom function to create journal header."
-  (concat
-    (pcase org-journal-file-type
-      (`monthly (format-time-string "#+TITLE: %B %G\n#+STARTUP: folded")))))
-
-(setq org-journal-file-header 'org-journal-file-header-func)
-
-
-(require 'org-journal)
 
 
 ;; You are able to define keybindings just for Org-mode via
@@ -644,7 +612,6 @@ is nil, refile in the current file."
                               ("t" "TODO: create a TODO for either work or home")
                               ("tw" "Work" entry (file (lambda () (concat org-directory "/atlassian.org" ))) "* TODO %?" :empty-lines 1)
                               ("th" "Home" entry (file (lambda () (concat org-directory "/personal.org" ))) "* TODO %?" :empty-lines 1)
-                              ("j" "Journal entry" entry (function org-journal-find-location) "* %(format-time-string org-journal-time-format)%^{Title}\n%i%?")
                               ( "i" "Idea" entry (file  (lambda () (concat org-directory "/ideas.org"))) "* %?" :empty-lines 1 )
 ))
 
@@ -685,19 +652,6 @@ same directory as the org-buffer and insert a link to this file."
   (if (file-exists-p filename)
       (insert (concat "[[file:" filename "]]"))))
 
-
-                                        ;(require 'emojify)
-                                        ;(require 'company-emoji)
-
-                                        ; https://github.com/iqbalansari/emacs-emojify
-                                        ; https://github.com/dunn/company-emoji
-
-;; Disbaling these for now as the Org-mode tags are being included in this and I really only want the
-;; bodies and headlines to have this enabled
-;;(add-to-list 'company-backends 'company-emoji)
-;;(add-hook 'org-mode-hook #'emojify-mode)
-;;(setq emojify-company-tooltips-p t)
-
 )
 
 
@@ -708,9 +662,12 @@ same directory as the org-buffer and insert a link to this file."
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(org-agenda-files
+   (quote
+    ("/Users/asemple/.asorganise/Orgmode/atlassian-journal.org" "/Users/asemple/.asorganise/Orgmode/atlassian.org" "/Users/asemple/.asorganise/Orgmode/bills.org" "/Users/asemple/.asorganise/Orgmode/commands.org" "/Users/asemple/.asorganise/Orgmode/home.org" "/Users/asemple/.asorganise/Orgmode/ideas.org" "/Users/asemple/.asorganise/Orgmode/notes.org" "/Users/asemple/.asorganise/Orgmode/people.org" "/Users/asemple/.asorganise/Orgmode/personal-journal.org" "/Users/asemple/.asorganise/Orgmode/personal.org" "/Users/asemple/.asorganise/Orgmode/reminders.org" "/Users/asemple/.asorganise/Orgmode/shopping-list.org" "/Users/asemple/.asorganise/Orgmode/temp.org" "/Users/asemple/.asorganise/Orgmode/travel-journal.org" "/Users/asemple/.asorganise/Orgmode/wishlist.org" "/Users/asemple/.asorganise/Orgmode/wunderlist.org")))
  '(package-selected-packages
    (quote
-    (yapfify pyvenv pytest pyenv-mode py-isort pip-requirements live-py-mode hy-mode dash-functional helm-pydoc cython-mode company-anaconda anaconda-mode pythonic smartparens company helm-core alert hydra web-mode org-ref ivy parsebib tablist ledger-mode expand-region evil-magit evil flycheck helm org-plus-contrib magit transient lv yaml-mode ws-butler winum which-key volatile-highlights visual-fill-column vi-tilde-fringe uuidgen use-package toc-org tagedit spaceline smeargle slim-mode scss-mode sass-mode restart-emacs rainbow-delimiters pug-mode popwin persp-mode pdf-tools pcre2el paradox orgit org-present org-pomodoro org-mime org-journal org-download org-bullets open-junk-file neotree move-text mmm-mode markdown-toc magit-gitflow macrostep lorem-ipsum linum-relative link-hint key-chord indent-guide hungry-delete htmlize hl-todo highlight-parentheses highlight-numbers highlight-indentation helm-themes helm-swoop helm-projectile helm-mode-manager helm-make helm-gitignore helm-flx helm-descbinds helm-css-scss helm-company helm-c-yasnippet helm-bibtex helm-ag graphviz-dot-mode goto-chg google-translate golden-ratio gnuplot gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link git-commit git-auto-commit-mode gh-md fuzzy flyspell-correct-helm flycheck-pos-tip flycheck-ledger flx-ido fill-column-indicator fancy-battery eyebrowse exec-path-from-shell evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-search-highlight-persist evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-lisp-state evil-indent-plus evil-iedit-state evil-exchange evil-escape evil-ediff evil-args evil-anzu eval-sexp-fu emmet-mode elisp-slime-nav dumb-jump diminish define-word company-web company-statistics column-enforce-mode clean-aindent-mode auto-yasnippet auto-highlight-symbol auto-dictionary auto-compile aggressive-indent adaptive-wrap ace-window ace-link ace-jump-helm-line ac-ispell)))
+    (request bibtex-completion markdown-mode iedit log4e dash web-beautify livid-mode skewer-mode simple-httpd json-mode json-snatcher json-reformat js2-refactor multiple-cursors js2-mode js-doc company-tern tern coffee-mode biblio biblio-core anzu yasnippet projectile avy magit-popup yapfify pyvenv pytest pyenv-mode py-isort pip-requirements live-py-mode hy-mode dash-functional helm-pydoc cython-mode company-anaconda anaconda-mode pythonic smartparens company helm-core alert hydra web-mode org-ref ivy parsebib tablist ledger-mode expand-region evil-magit evil flycheck helm org-plus-contrib magit transient lv yaml-mode ws-butler winum which-key volatile-highlights visual-fill-column vi-tilde-fringe uuidgen use-package toc-org tagedit spaceline smeargle slim-mode scss-mode sass-mode restart-emacs rainbow-delimiters pug-mode popwin persp-mode pdf-tools pcre2el paradox orgit org-present org-pomodoro org-mime org-journal org-download org-bullets open-junk-file neotree move-text mmm-mode markdown-toc magit-gitflow macrostep lorem-ipsum linum-relative link-hint key-chord indent-guide hungry-delete htmlize hl-todo highlight-parentheses highlight-numbers highlight-indentation helm-themes helm-swoop helm-projectile helm-mode-manager helm-make helm-gitignore helm-flx helm-descbinds helm-css-scss helm-company helm-c-yasnippet helm-bibtex helm-ag graphviz-dot-mode goto-chg google-translate golden-ratio gnuplot gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link git-commit git-auto-commit-mode gh-md fuzzy flyspell-correct-helm flycheck-pos-tip flycheck-ledger flx-ido fill-column-indicator fancy-battery eyebrowse exec-path-from-shell evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-search-highlight-persist evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-lisp-state evil-indent-plus evil-iedit-state evil-exchange evil-escape evil-ediff evil-args evil-anzu eval-sexp-fu emmet-mode elisp-slime-nav dumb-jump diminish define-word company-web company-statistics column-enforce-mode clean-aindent-mode auto-yasnippet auto-highlight-symbol auto-dictionary auto-compile aggressive-indent adaptive-wrap ace-window ace-link ace-jump-helm-line ac-ispell)))
  '(quote
    (package-selected-packages
     (quote
