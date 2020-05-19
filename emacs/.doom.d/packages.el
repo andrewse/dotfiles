@@ -45,3 +45,19 @@
 ;; This is required for some packages whose default branch isn't 'master' (which
 ;; our package manager can't deal with; see raxod502/straight.el#279)
 ;(package! builtin-package :recipe (:branch "develop"))
+
+
+(package! org-plus-contrib)
+(package! org-ref)
+
+
+;(quelpa '(git-auto-commit-mode :fetcher github :repo "ryuslash/git-auto-commit-mode"))
+(package! git-auto-commit-mode
+  :recipe (:host github :repo "ryuslash/git-auto-commit-mode"
+           :files ("git-auto-commit-mode.el")))
+
+;(quelpa '(visual-fill-column :fetcher github :repo "joostkremers/visual-fill-column"))
+(package! visual-fill-column
+  :recipe (:host github :repo "joostkremers/visual-fill-column"
+           :files ("visual-fill-column.el")))
+

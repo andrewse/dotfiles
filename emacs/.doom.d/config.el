@@ -26,14 +26,9 @@
 ;; `load-theme' function. This is the default:
 (setq doom-theme 'doom-one)
 
-;; If you use `org' and don't want your org files in the default location below,
-;; change `org-directory'. It must be set before org loads!
-(setq org-directory "~/org/")
-
 ;; This determines the style of line numbers in effect. If set to `nil', line
 ;; numbers are disabled. For relative line numbers, set this to `relative'.
 (setq display-line-numbers-type t)
-
 
 ;; Here are some additional functions/macros that could help you configure Doom:
 ;;
@@ -51,3 +46,11 @@
 ;;
 ;; You can also try 'gd' (or 'C-c g d') to jump to their definition and see how
 ;; they are implemented.
+
+(set-locale-environment "en_AU")
+(set-language-environment "UTF-8")
+(set-default-coding-systems 'utf-8)
+
+(load! "org-mode-config")
+;(add-to-list 'load-path "~/.doom.d/")
+;(require 'org-mode-config)
