@@ -51,6 +51,6 @@
 (set-language-environment "UTF-8")
 (set-default-coding-systems 'utf-8)
 
-(load! "org-mode-config")
+(after! org (load! "org-mode-config"))
 ;(add-to-list 'load-path "~/.doom.d/")
 ;(require 'org-mode-config)

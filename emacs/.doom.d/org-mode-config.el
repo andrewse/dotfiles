@@ -27,7 +27,6 @@
         org-agenda-skip-deadline-if-done t
         org-agenda-skip-scheduled-if-done t
         org-agenda-skip-timestamp-if-done t
-        org-id-link-to-org-use-id 'create-if-interactive
         org-startup-with-inline-images t
         org-link-abbrev-alist '(("attachment" . org-attach-expand-link))
         org-modules '(org-expiry org-tempo)
@@ -50,8 +49,17 @@
                                       ("tw" "Work" entry (file (lambda () (concat org-directory "/atlassian.org" ))) "* TODO %?" :empty-lines 1)
                                       ("th" "Home" entry (file (lambda () (concat org-directory "/personal.org" ))) "* TODO %?" :empty-lines 1)
                                       ( "i" "Idea" entry (file  (lambda () (concat org-directory "/ideas.org"))) "* %?" :empty-lines 1 )
+                                      ( "I" "Interview CAF" entry (file  (lambda () (concat org-directory "/atlassian.org"))) "* CAF Interview for %^{Candidate}%?\n%[~/.asorganise/Orgmode/caf-interview.template]" :empty-lines 1 )
         )
         org-agenda-files (quote ("~/.asorganise/Orgmode/" "~/.asorganise/Orgmode/Archive"))
+
+        ;; Configuration for org-id
+        org-id-locations-file "~/.emacs.d/.org-id-locations"
+        org-id-link-to-org-use-id 'create-if-interactive
+
+        org-src-tab-acts-natively t
+        org-startup-indented nil
+        org-startup-folded t
 )
 
 
