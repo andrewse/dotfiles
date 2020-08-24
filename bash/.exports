@@ -1,5 +1,5 @@
-#Add syntax highlighting to LESS
-export LESSOPEN="| /usr/local/bin/src-hilite-lesspipe.sh %s"
+#Add syntax highlighting to LESS with `brew install lesspipe`
+export LESSOPEN="|/usr/local/bin/lesspipe.sh %s" LESS_ADVANCED_PREPROCESSOR=1
 export LESS=' -R -N -S'
 
 export GOPATH=$HOME/src/go

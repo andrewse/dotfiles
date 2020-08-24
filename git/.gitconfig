@@ -35,3 +35,5 @@
 # https://git-scm.com/docs/git-config#_includes
 [includeIf "gitdir:**/github/**"]
   path = ~/.gitconfig_github
+[pull]
+	rebase = false

@@ -64,3 +64,4 @@ complete -o "nospace" -W "Contacts Calendar Dock Finder Mail Safari iTunes Syste
 # Add to the keychain identites that I want to be loaded on startup
 # https://stackoverflow.com/questions/3466626/add-private-key-permanently-with-ssh-add-on-ubuntu
 # ssh-add -K ~/.ssh/your_private_key
+export PATH="/usr/local/opt/ruby/bin:$PATH"
